@@ -1,0 +1,176 @@
+<html>
+<head>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <script type="text/javascript" src="jquery.js"></script> 
+  <title>Ground Station</title>
+  <style>
+  	.box{
+  		width:120px;
+  		height:40px;
+  		background-color: rgba(255, 255, 255, .5);
+  		text-align: center;
+  		margin:2px;
+  	}
+  	.top-right{
+  		position:absolute;
+  		right: 0px;
+  		top:0px;
+  	}
+  	.top-left{
+  		position:absolute;
+  		left: 0px;
+  		top:0px;
+  	}
+  	.top-center{
+  		position:absolute;
+  		top: 0px;
+  		left: 50%;
+		transform: translateX(-50%);
+  	}
+  	.top-center > div {
+  		display: inline-block;
+  	}
+  	.bottom-left{
+  		position:absolute;
+  		left: 0px;
+  		bottom:0px;
+  	}
+  	.img-wrapper-left{
+  		position: relative;
+		display: inline-grid;
+  	}
+  	.img-overlap{
+  		position: absolute;
+  	}
+  	.bottom-right{
+  		position:absolute;
+  		right: 0px;
+  		bottom: 0px;	
+  	}
+  	label{
+  		font-weight: bold;
+  	}
+  	body{
+  		font-family: Arial;
+  		background-color: orange;
+  	}
+  </style>
+</head>
+<body>
+
+<div class="top-center">
+	<div class="box">
+		<label>LATITUDE</label>
+		<div id="lat">~</div>
+	</div>
+	<div class="box">
+		<label>SATS</label>
+		<div id="gps_sats">~</div>
+	</div>
+	<div class="box">
+		<label>LONGITUDE</label>
+		<div id="lng">~</div>
+	</div>
+</div>
+
+<div class="top-left">
+	<div class="box">
+		<label>CURRENT</label>
+		<div id="current">~</div>
+	</div>
+	<div class="box">
+		<label>VOLTAGE</label>
+		<div id="voltage">~</div>
+	</div>
+	<div class="box">
+		<label>SPEED</label>
+		<div id="speed">~</div>
+	</div>
+	<div class="box">
+		<label>ALTITUDE</label>
+		<div id="alt">~</div>
+	</div>
+	<div class="box">
+		<label>DISTANCE</label>
+		<div id="distance">~</div>
+	</div>
+</div>
+
+<div class="top-right">
+	<div class="box">
+		<label>FLIGHT MODE</label>
+		<div id="stabilization">~</div>
+	</div>
+	<div class="box">
+		<label>ARMED</label>
+		<div id="arm">~</div>
+	</div>
+	<div class="box">
+		<label>FUEL</label>
+		<div id="fuel">~</div>
+	</div>
+	<div class="box">
+		<label>SIGNAL</label>
+		<div id="rssi">~</div>
+	</div>
+</div>
+
+<div class="bottom-left">
+	<select id="ports"></select>
+	<button id="connect">Connect</button>
+</div>
+
+<div class="bottom-right">
+	<span class="img-wrapper-left">
+		<img src="compass.png" width="150">
+		<img id="heading" class="img-overlap" src="compass_plane.png" width="150">
+	</span>
+	<span class="img-wrapper-left">
+		<img src="attitude-indicator-bg.png" width="150">
+		<img class="img-overlap" src="attitude-horizont.png" width="150">
+		<img class="img-overlap" src="horizon_plane.png" width="150">
+	</span>		
+</div>
+
+<script>
+	$(document).ready(function() {
+		setInterval(function(){ 
+			$.get("/flight", function(data, status) {
+				var jsonData = JSON.parse(data);
+          		console.log(jsonData);
+          		$('#lat').text(jsonData.lat);
+          		$('#lng').text(jsonData.lng);
+          		$('#alt').text(jsonData.alt);
+          		$('#gps_sats').text(jsonData.gps_sats);
+          		$('#distance').text(jsonData.distance);
+          		$('#speed').text(jsonData.speed);
+          		$('#voltage').text(jsonData.voltage);
+          		$('#rssi').text(jsonData.rssi);
+          		$('#current').text(jsonData.current);
+          		$('#arm').text(jsonData.arm);
+          		$('#stabilization').text(jsonData.stabilization);
+          		$('#fuel').text(jsonData.fuel);
+          		$('#roll').text(jsonData.roll);
+          		$('#pitch').text(jsonData.pitch);
+
+          		//jsonData.heading
+          		$("#heading").css({'transform': 'rotate(0deg)'});
+        	});
+		}, 3000);
+
+		$.get("/ports", function(data, status) {
+          var jsonData = JSON.parse(data);
+          	$(jsonData).each(function(index,element) {
+        		$("#ports").append($("<option />").val(element.path).text(element.path));
+    		});
+        });
+        $('#connect').on('click', function() {
+        	var selectedPort = $("#ports option:selected").text();
+	        $.post("/connect/",{port:selectedPort}, function(data, status) {
+          		
+        	});
+	    });
+	});
+</script>
+</body>
+</html>
