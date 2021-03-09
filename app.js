@@ -20,14 +20,14 @@ app.post('/connect', function (req, res) {
 	const parser = port.pipe(new ByteLength({length: 9}));
 
 	port.on("open", () => {
-	  console.log('serial port open: ' + req.body.port);
-	});
+        console.log('serial port open: ' + req.body.port);
+    });
 	port.on('error', function(err) {
-	  console.log('Error: ', err.message)
-	})
+        console.log('Error: ', err.message)
+    })
 	parser.on('data', data =>{
-	  process_incoming_bytes(data);
-	});
+        process_incoming_bytes(data);
+    });
 
 	setTimeout(function() {
 		port.write('AT+PIN000000\r\n');
@@ -40,8 +40,8 @@ app.post('/connect', function (req, res) {
 })
 app.get('/ports', function (req, res) {
 	SerialPort.list().then(function(ports){
-  		res.send(JSON.stringify(ports));
-	});
+        res.send(JSON.stringify(ports));
+    });
 })
 app.get('/flight', function (req, res) {
 	var flight = {
@@ -61,7 +61,7 @@ app.get('/flight', function (req, res) {
 		roll:roll,
 		pitch:pitch,
 	}
-  	res.send(JSON.stringify(flight));
+    res.send(JSON.stringify(flight));
 })
 
 var lat = 0.0
@@ -119,46 +119,41 @@ var newLongitude = false
 var latitude = 0.0
 var longitude = 0.0
 
-//MARK: Functions
-    function getStabilization(){
-        var mode = flight_mode / 10 % 10
-        if (mode == 2){
-            return "horizon"
-        }
-        else if (mode == 1) {
-            return "angle"
-        }
-        else{
-            return "manual"
-        }
+function getStabilization(){
+    var mode = flight_mode / 10 % 10
+    if (mode == 2){
+        return "horizon"
     }
-    function getArmed(){
-        var mode = flight_mode % 10
-        if (mode == 5) {
-            return "YES"
-        }
-        return "NO"
+    else if (mode == 1) {
+        return "angle"
     }
-    
-    //MARK: Helpers
-    function buffer_get_int16(buffer,index){
-        return buffer[index] << 8 | buffer[index - 1]
+    else{
+        return "manual"
     }
-    function buffer_get_int32(buffer, index) {
-        return buffer[index] << 24 | buffer[index - 1] << 16 | buffer[index - 2] << 8 | buffer[index - 3]
+}
+function getArmed(){
+    var mode = flight_mode % 10
+    if (mode == 5) {
+        return "YES"
     }
-    
-    //MARK: Telemetry functions
-    function process_incoming_bytes(incomingData){
-    	const data = Buffer.from(incomingData);
-        for (var i = 0; i < data.length; i++) {
-            switch (state) {
+    return "NO"
+}
+function buffer_get_int16(buffer,index){
+    return buffer[index] << 8 | buffer[index - 1]
+}
+function buffer_get_int32(buffer, index) {
+    return buffer[index] << 24 | buffer[index - 1] << 16 | buffer[index - 2] << 8 | buffer[index - 3]
+}
+function process_incoming_bytes(incomingData){
+    const data = Buffer.from(incomingData);
+    for (var i = 0; i < data.length; i++) {
+        switch (state) {
             case State.IDLE:
                 if (data[i] == START_BYTE) {
                     state = State.DATA
                     bufferIndex = 0
                 }
-                break
+            break
             case State.DATA:
                 if (data[i] == DATA_STUFF) {
                     state = State.XOR
@@ -170,39 +165,38 @@ var longitude = 0.0
                     buffer[bufferIndex] = data[i]
                     bufferIndex += 1
                 }
-                break
+            break
             case State.XOR:
                 buffer[bufferIndex] = data[i] ^ STUFF_MASK
                 bufferIndex += 1
                 state = State.DATA
-                break
-            }
-            
-            if (bufferIndex == PACKET_SIZE) {
-                state = State.IDLE
-                
-                var _ = buffer[0] //sensor type
-                var packetType = buffer[1]
-                if (packetType == DATA_START) {
-                    var dataType = buffer_get_int16(buffer,3)
-                    var rawData = buffer_get_int32(buffer,7)
-                    
-                    switch (dataType) {
+            break
+        }
+
+        if (bufferIndex == PACKET_SIZE) {
+            state = State.IDLE
+            var _ = buffer[0] //sensor type
+            var packetType = buffer[1]
+            if (packetType == DATA_START) {
+                var dataType = buffer_get_int16(buffer,3)
+                var rawData = buffer_get_int32(buffer,7)
+                        
+                switch (dataType) {
                     case VFAS_SENSOR:
                         voltage = parseFloat(rawData) / 100.0
-                        break
+                    break
                     case GSPEED_SENSOR:
                         speed = parseInt((parseFloat(rawData) / (1944.0 / 100.0)) / 27.778)
-                        break
+                    break
                     case GALT_SENSOR:
                         alt = parseInt(parseFloat(rawData) / 100.0)
-                        break
+                    break
                     case DISTANCE_SENSOR:
                         distance = parseInt(rawData)
-                        break
+                    break
                     case FUEL_SENSOR:
                         fuel = parseInt(rawData)
-                        break
+                    break
                     case GPS_SENSOR:
                         var gpsData = parseFloat((rawData & 0x3FFFFFFF)) / 10000.0 / 60.0
                         if (rawData & 0x40000000 > 0) {
@@ -221,32 +215,32 @@ var longitude = 0.0
                             lat = latitude
                             lng = longitude
                         }
-                        break
+                    break
                     case CURRENT_SENSOR:
                         current = parseInt(parseFloat(rawData) / 10.0)
-                        break
+                    break
                     case HEADING_SENSOR:
                         heading = parseInt(parseFloat(rawData) / 100.0)
-                        break
+                    break
                     case RSSI_SENSOR:
                         rssi = parseInt(rawData)
-                        break
+                    break
                     case FLYMODE_SENSOR:
                         flight_mode = parseInt(rawData)
-                        break
+                    break
                     case GPS_STATE_SENSOR:
                         gps_sats = parseInt(rawData % 100)
-                        break
+                    break
                     case PITCH_SENSOR:
                         pitch = parseInt(parseFloat(rawData) / 10.0)
-                        break
+                    break
                     case ROLL_SENSOR:
                         roll = parseInt(parseFloat(rawData) / 10.0)
-                        break
+                    break
                     default:
-                        break
-                    }
+                    break
                 }
             }
         }
     }
+}
