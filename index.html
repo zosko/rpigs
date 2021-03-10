@@ -89,6 +89,15 @@
 </div>
 <script>
 	$(document).ready(function() {
+		map = new OpenLayers.Map("map");
+      	map.addLayer(new OpenLayers.Layer.OSM());
+      	epsg4326 =  new OpenLayers.Projection("EPSG:4326");
+      	projectTo = map.getProjectionObject();
+      	var markers = new OpenLayers.Layer.Markers("Markers");
+      	var vectorLayer = new OpenLayers.Layer.Vector("Overlay");
+      	var zoom = 16;
+		var marker = null;
+
 		setInterval(function(){ 
 			$.get("/flight", function(data, status) {
 				var jsonData = JSON.parse(data);
@@ -109,8 +118,18 @@
           		$("#attitude-horizont").css({top:-jsonData.pitch});
 				$("#attitude-plane").css({'transform': 'rotate('+jsonData.roll+'deg)'});
 				$('#lastPacket').text(jsonData.last_packet + "s");
+
+				if (marker != null){
+					markers.removeMarker(marker);
+				}
+				
+				var lonLat = new OpenLayers.LonLat( jsonData.lng,jsonData.lat ).transform(epsg4326, projectTo);
+				marker = new OpenLayers.Marker(lonLat);
+    			markers.addMarker(marker);
+    			map.addLayer(markers);
+    			map.setCenter (lonLat, zoom);
         	});
-		}, 1000);
+		}, 300);
 
 		$.get("/ports", function(data, status) {
           var jsonData = JSON.parse(data);
@@ -132,15 +151,6 @@
         		$('.ports-wrapper').addClass('hide');
         	});
 	    });
-
-		map = new OpenLayers.Map("map");
-      	map.addLayer(new OpenLayers.Layer.OSM());
-      	epsg4326 =  new OpenLayers.Projection("EPSG:4326");
-      	projectTo = map.getProjectionObject();
-      	var vectorLayer = new OpenLayers.Layer.Vector("Overlay");
-      	var lonLat = new OpenLayers.LonLat( 21.432546,41.995788 ).transform(epsg4326, projectTo);
-      	var zoom = 15;
-      	map.setCenter (lonLat, zoom);
 	});
 </script>
 </body>
