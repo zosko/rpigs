@@ -2,7 +2,6 @@
 <head>
 	<meta name="viewport" content="width=device-width, initial-scale=1">
 	<script type="text/javascript" src="js/jquery.js"></script>   
-	<link rel="stylesheet" href="css/style.css">
 	<script src="https://cdnjs.cloudflare.com/ajax/libs/openlayers/2.11/lib/OpenLayers.js"></script> 
 	<title>Ground Station</title>
 </head>
@@ -89,7 +88,12 @@
 </div>
 <script>
 	$(document).ready(function() {
-		map = new OpenLayers.Map("map");
+		map = new OpenLayers.Map("map", {
+            controls: [
+                new OpenLayers.Control.ZoomPanel()
+            ]
+        });
+
       	map.addLayer(new OpenLayers.Layer.OSM());
       	epsg4326 =  new OpenLayers.Projection("EPSG:4326");
       	projectTo = map.getProjectionObject();
@@ -153,5 +157,6 @@
 	    });
 	});
 </script>
+<link rel="stylesheet" href="css/style.css">
 </body>
 </html>

@@ -66,3 +66,15 @@
       top: 50%;
       transform: translateY(-50%);
     }
+    .olControlZoomPanel .olControlZoomInItemInactive {
+            left: 30px;
+            top: 160px;
+       } 
+       .olControlZoomPanel .olControlZoomToMaxExtentItemInactive{
+          left: 30px;
+            top: 180px;
+       }
+       .olControlZoomPanel .olControlZoomOutItemInactive {
+          left: 30px;
+            top: 200px;
+       }
