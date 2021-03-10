@@ -1,9 +1,10 @@
 .box{
   		width:120px;
   		height:40px;
-  		background-color: rgba(255, 255, 255, .5);
+  		background-color: rgba(255, 255, 255, .8);
   		text-align: center;
   		margin:2px;
+      border: 1px solid black;
   	}
   	.top-right{
   		position:absolute;
@@ -29,9 +30,10 @@
   		left: 0px;
   		bottom:0px;
   	}
-  	.img-wrapper-left{
+  	.img-wrapper{
   		position: relative;
-		display: inline-grid;
+		  display: inline-grid;
+      overflow: hidden;
   	}
   	.img-overlap{
   		position: absolute;
@@ -49,6 +51,9 @@
   		background-color: black;
   	}
     #map {
-      height: 290px;
-      width: 400px;
+      top:0px;
+      bottom: 0px;
+      left: 0px;
+      right: 0px;
+      position: absolute;
     }

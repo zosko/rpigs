@@ -11,7 +11,7 @@ app.use(bodyParser.json());
 
 http.createServer(app).listen(8080);
 
-var lastPacket = 0;
+var lastPacket = new Date();
 
 app.get('/', function (req, res) {
 	res.sendFile(path.join(__dirname + '/index.html'));  
@@ -44,7 +44,8 @@ app.get('/ports', function (req, res) {
     });
 })
 app.get('/status', function (req, res) {
-    res.send(JSON.stringify(lastPacket));
+    const diffTime = Math.abs(new Date() - lastPacket);
+    res.send(JSON.stringify(parseInt(diffTime/1000)));
 })
 app.get('/flight', function (req, res) {
 	var flight = {

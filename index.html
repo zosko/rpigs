@@ -7,7 +7,7 @@
 	<title>Ground Station</title>
 </head>
 <body>
-
+<div id="map"></div>
 <div class="top-center">
 	<div class="box">
 		<label>LATITUDE</label>
@@ -21,7 +21,6 @@
 		<label>LONGITUDE</label>
 		<div id="lng">~</div>
 	</div>
-	<div id="map"></div>
 </div>
 
 <div class="top-left">
@@ -64,20 +63,23 @@
 		<label>SIGNAL</label>
 		<div id="rssi">~</div>
 	</div>
+	<div class="box">
+		<label>LAST PACKET</label>
+		<div id="lastPacket">~</div>
+	</div>
 </div>
 
 <div class="bottom-left">
 	<select id="ports"></select>
-	<div id="status" class="box">~</div>
 	<button id="connect">Connect</button>
 </div>
 
 <div class="bottom-right">
-	<span class="img-wrapper-left">
+	<span class="img-wrapper">
 		<img src="images/compass.png" width="150">
 		<img id="heading" class="img-overlap" src="images/compass_plane.png" width="150">
 	</span>
-	<span class="img-wrapper-left">
+	<span class="img-wrapper">
 		<img src="images/attitude-indicator-bg.png" width="150">
 		<img id="attitude-horizont" class="img-overlap" src="images/attitude-horizont.png" width="150">
 		<img id="attitude-plane" class="img-overlap" src="images/horizon_plane.png" width="150">
@@ -104,12 +106,12 @@
           		$('#fuel').text(jsonData.fuel);
 
           		$("#heading").css({'transform': 'rotate('+jsonData.heading+'deg)'});
-          		$("#attitude-horizont").css({top:jsonData.pitch});
+          		$("#attitude-horizont").css({top:-jsonData.pitch});
 				$("#attitude-plane").css({'transform': 'rotate('+jsonData.roll+'deg)'});
         	});
 
         	$.get("/status", function(data, status) {
-        		$('#status').text(data);
+        		$('#lastPacket').text(data + "s");
         	});
 		}, 3000);
 
