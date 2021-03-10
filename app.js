@@ -12,6 +12,7 @@ app.use(bodyParser.json());
 http.createServer(app).listen(8080);
 
 var lastPacket = new Date();
+var portConnected = "";
 var serialPort;
 
 app.get('/', function (req, res) {
@@ -22,25 +23,8 @@ app.get('/disconnect', function (req, res) {
     res.send("");
 })
 app.post('/connect', function (req, res) {
-    serialPort = new SerialPort(req.body.port, { baudRate: 57600 });
-
-	serialPort.on("open", () => {
-        console.log('serial port open: ' + req.body.port);
-    });
-	serialPort.on('error', function(err) {
-        console.log('Error: ', err.message)
-    });
-	serialPort.on('data', data =>{
-        process_incoming_bytes(data);
-    });
-
-	setTimeout(function() {
-		serialPort.write('AT+PIN000000\r\n');
-    }, 1000);
-	setTimeout(function() {
-		serialPort.write('AT+CONA4C249839091C\r\n');
-    }, 2000);
-	
+    portConnected = req.body.port;
+    connect()
 	res.send("");
 })
 app.get('/ports', function (req, res) {
@@ -49,7 +33,12 @@ app.get('/ports', function (req, res) {
     });
 })
 app.get('/flight', function (req, res) {
-    const diffTime = Math.abs(new Date() - lastPacket);
+    const last_packet = parseInt(Math.abs(new Date() - lastPacket) / 1000);
+
+    if (last_packet > 25){
+        lastPacket = new Date();
+        reconnect();
+    }
 
 	var flight = {
 		lat:lat,
@@ -67,10 +56,35 @@ app.get('/flight', function (req, res) {
 		fuel:fuel,
 		roll:roll,
 		pitch:pitch,
-        last_packet:parseInt(diffTime/1000)
+        last_packet:last_packet
 	}
     res.send(JSON.stringify(flight));
 })
+
+function connect(){
+    serialPort = new SerialPort(portConnected, { baudRate: 57600 });
+
+    serialPort.on("open", () => {
+        console.log('SerialPort: ' + portConnected);
+    });
+    serialPort.on('error', function(err) {
+        console.log('Error: ', err.message)
+    });
+    serialPort.on('data', data =>{
+        process_incoming_bytes(data);
+    });
+
+    setTimeout(function() {
+        serialPort.write('AT+PIN000000\r\n');
+    }, 1000);
+    setTimeout(function() {
+        serialPort.write('AT+CONA4C249839091C\r\n');
+    }, 2000);
+}
+function reconnect(){
+    serialPort.close();
+    connect()
+}
 
 var lat = 0.0
 var lng = 0.0
