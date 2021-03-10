@@ -1,9 +1,10 @@
 <html>
 <head>
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <script type="text/javascript" src="js/jquery.js"></script> 
-  <link rel="stylesheet" href="css/style.css">
-  <title>Ground Station</title>
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<script type="text/javascript" src="js/jquery.js"></script>   
+	<link rel="stylesheet" href="css/style.css">
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/openlayers/2.11/lib/OpenLayers.js"></script> 
+	<title>Ground Station</title>
 </head>
 <body>
 
@@ -20,6 +21,7 @@
 		<label>LONGITUDE</label>
 		<div id="lng">~</div>
 	</div>
+	<div id="map"></div>
 </div>
 
 <div class="top-left">
@@ -76,8 +78,8 @@
 	</span>
 	<span class="img-wrapper-left">
 		<img src="images/attitude-indicator-bg.png" width="150">
-		<img class="img-overlap" src="images/attitude-horizont.png" width="150">
-		<img class="img-overlap" src="images/horizon_plane.png" width="150">
+		<img id="attitude-horizont" class="img-overlap" src="images/attitude-horizont.png" width="150">
+		<img id="attitude-plane" class="img-overlap" src="images/horizon_plane.png" width="150">
 	</span>		
 </div>
 
@@ -99,11 +101,10 @@
           		$('#arm').text(jsonData.arm);
           		$('#stabilization').text(jsonData.stabilization);
           		$('#fuel').text(jsonData.fuel);
-          		$('#roll').text(jsonData.roll);
-          		$('#pitch').text(jsonData.pitch);
 
-          		//jsonData.heading
-          		$("#heading").css({'transform': 'rotate(0deg)'});
+          		$("#heading").css({'transform': 'rotate('+jsonData.heading+'deg)'});
+          		$("#attitude-horizont").css({top:jsonData.pitch});
+				$("#attitude-plane").css({'transform': 'rotate('+jsonData.roll+'deg)'});
         	});
 		}, 3000);
 
@@ -119,6 +120,15 @@
           		
         	});
 	    });
+
+		map = new OpenLayers.Map("map");
+      	map.addLayer(new OpenLayers.Layer.OSM());
+      	epsg4326 =  new OpenLayers.Projection("EPSG:4326");
+      	projectTo = map.getProjectionObject();
+      	var vectorLayer = new OpenLayers.Layer.Vector("Overlay");
+      	var lonLat = new OpenLayers.LonLat( 21.432546,41.995788 ).transform(epsg4326, projectTo);
+      	var zoom = 15;
+      	map.setCenter (lonLat, zoom);
 	});
 </script>
 </body>
