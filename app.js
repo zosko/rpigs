@@ -3,7 +3,6 @@ var express = require('express');
 const bodyParser = require("body-parser");
 var path = require("path");
 const SerialPort = require('serialport');
-const ByteLength = require('@serialport/parser-byte-length');
 const app = express();
 
 app.use('/',express.static(path.join(__dirname, './')));
@@ -12,12 +11,13 @@ app.use(bodyParser.json());
 
 http.createServer(app).listen(8080);
 
+var lastPacket = 0;
+
 app.get('/', function (req, res) {
 	res.sendFile(path.join(__dirname + '/index.html'));  
 })
 app.post('/connect', function (req, res) {
 	const port = new SerialPort(req.body.port, { baudRate: 57600 });
-	const parser = port.pipe(new ByteLength({length: 9}));
 
 	port.on("open", () => {
         console.log('serial port open: ' + req.body.port);
@@ -25,7 +25,7 @@ app.post('/connect', function (req, res) {
 	port.on('error', function(err) {
         console.log('Error: ', err.message)
     })
-	parser.on('data', data =>{
+	port.on('data', data =>{
         process_incoming_bytes(data);
     });
 
@@ -42,6 +42,9 @@ app.get('/ports', function (req, res) {
 	SerialPort.list().then(function(ports){
         res.send(JSON.stringify(ports));
     });
+})
+app.get('/status', function (req, res) {
+    res.send(JSON.stringify(lastPacket));
 })
 app.get('/flight', function (req, res) {
 	var flight = {
@@ -120,7 +123,7 @@ var latitude = 0.0
 var longitude = 0.0
 
 function getStabilization(){
-    var mode = flight_mode / 10 % 10
+    var mode = parseInt(flight_mode / 10 % 10);
     if (mode == 2){
         return "horizon"
     }
@@ -132,7 +135,7 @@ function getStabilization(){
     }
 }
 function getArmed(){
-    var mode = flight_mode % 10
+    var mode = parseInt(flight_mode % 10);
     if (mode == 5) {
         return "YES"
     }
@@ -172,15 +175,17 @@ function process_incoming_bytes(incomingData){
                 state = State.DATA
             break
         }
-
+        
         if (bufferIndex == PACKET_SIZE) {
             state = State.IDLE
             var _ = buffer[0] //sensor type
             var packetType = buffer[1]
             if (packetType == DATA_START) {
-                var dataType = buffer_get_int16(buffer,3)
-                var rawData = buffer_get_int32(buffer,7)
-                        
+                lastPacket = new Date();
+                
+                var dataType = buffer_get_int16(buffer,3);
+                var rawData = buffer_get_int32(buffer,7);
+                //console.log(dataType.toString(16));
                 switch (dataType) {
                     case VFAS_SENSOR:
                         voltage = parseFloat(rawData) / 100.0

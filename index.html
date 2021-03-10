@@ -68,6 +68,7 @@
 
 <div class="bottom-left">
 	<select id="ports"></select>
+	<div id="status" class="box">~</div>
 	<button id="connect">Connect</button>
 </div>
 
@@ -105,6 +106,10 @@
           		$("#heading").css({'transform': 'rotate('+jsonData.heading+'deg)'});
           		$("#attitude-horizont").css({top:jsonData.pitch});
 				$("#attitude-plane").css({'transform': 'rotate('+jsonData.roll+'deg)'});
+        	});
+
+        	$.get("/status", function(data, status) {
+        		$('#status').text(data);
         	});
 		}, 3000);
 
