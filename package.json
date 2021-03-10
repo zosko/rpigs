@@ -1,12 +1,12 @@
 {
   "name": "rpigs",
   "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
+  "description": "Raspberry PI Ground Station for SmartPort",
+  "main": "app.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "author": "",
+  "author": "bosko petreski",
   "license": "ISC",
   "dependencies": {
     "@serialport/list": "^9.0.7",
