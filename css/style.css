@@ -57,3 +57,12 @@
       right: 0px;
       position: absolute;
     }
+    .hide{
+      visibility: hidden;
+    }
+    .ports-wrapper{
+      text-align: center;
+      position: relative;
+      top: 50%;
+      transform: translateY(-50%);
+    }

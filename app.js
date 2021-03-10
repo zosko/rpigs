@@ -12,28 +12,33 @@ app.use(bodyParser.json());
 http.createServer(app).listen(8080);
 
 var lastPacket = new Date();
+var serialPort;
 
 app.get('/', function (req, res) {
 	res.sendFile(path.join(__dirname + '/index.html'));  
 })
+app.get('/disconnect', function (req, res) {
+    serialPort.close();
+    res.send("");
+})
 app.post('/connect', function (req, res) {
-	const port = new SerialPort(req.body.port, { baudRate: 57600 });
+    serialPort = new SerialPort(req.body.port, { baudRate: 57600 });
 
-	port.on("open", () => {
+	serialPort.on("open", () => {
         console.log('serial port open: ' + req.body.port);
     });
-	port.on('error', function(err) {
+	serialPort.on('error', function(err) {
         console.log('Error: ', err.message)
-    })
-	port.on('data', data =>{
+    });
+	serialPort.on('data', data =>{
         process_incoming_bytes(data);
     });
 
 	setTimeout(function() {
-		port.write('AT+PIN000000\r\n');
+		serialPort.write('AT+PIN000000\r\n');
     }, 1000);
 	setTimeout(function() {
-		port.write('AT+CONA4C249839091C\r\n');
+		serialPort.write('AT+CONA4C249839091C\r\n');
     }, 2000);
 	
 	res.send("");
@@ -43,11 +48,9 @@ app.get('/ports', function (req, res) {
         res.send(JSON.stringify(ports));
     });
 })
-app.get('/status', function (req, res) {
-    const diffTime = Math.abs(new Date() - lastPacket);
-    res.send(JSON.stringify(parseInt(diffTime/1000)));
-})
 app.get('/flight', function (req, res) {
+    const diffTime = Math.abs(new Date() - lastPacket);
+
 	var flight = {
 		lat:lat,
 		lng:lng,
@@ -64,6 +67,7 @@ app.get('/flight', function (req, res) {
 		fuel:fuel,
 		roll:roll,
 		pitch:pitch,
+        last_packet:parseInt(diffTime/1000)
 	}
     res.send(JSON.stringify(flight));
 })

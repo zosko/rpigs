@@ -7,113 +7,110 @@
 	<title>Ground Station</title>
 </head>
 <body>
-<div id="map"></div>
-<div class="top-center">
-	<div class="box">
-		<label>LATITUDE</label>
-		<div id="lat">~</div>
-	</div>
-	<div class="box">
-		<label>SATS</label>
-		<div id="gps_sats">~</div>
-	</div>
-	<div class="box">
-		<label>LONGITUDE</label>
-		<div id="lng">~</div>
-	</div>
-</div>
-
-<div class="top-left">
-	<div class="box">
-		<label>CURRENT</label>
-		<div id="current">~</div>
-	</div>
-	<div class="box">
-		<label>VOLTAGE</label>
-		<div id="voltage">~</div>
-	</div>
-	<div class="box">
-		<label>SPEED</label>
-		<div id="speed">~</div>
-	</div>
-	<div class="box">
-		<label>ALTITUDE</label>
-		<div id="alt">~</div>
-	</div>
-	<div class="box">
-		<label>DISTANCE</label>
-		<div id="distance">~</div>
-	</div>
-</div>
-
-<div class="top-right">
-	<div class="box">
-		<label>FLIGHT MODE</label>
-		<div id="stabilization">~</div>
-	</div>
-	<div class="box">
-		<label>ARMED</label>
-		<div id="arm">~</div>
-	</div>
-	<div class="box">
-		<label>FUEL</label>
-		<div id="fuel">~</div>
-	</div>
-	<div class="box">
-		<label>SIGNAL</label>
-		<div id="rssi">~</div>
-	</div>
-	<div class="box">
-		<label>LAST PACKET</label>
-		<div id="lastPacket">~</div>
-	</div>
-</div>
-
-<div class="bottom-left">
+<div class="ports-wrapper">
 	<select id="ports"></select>
 	<button id="connect">Connect</button>
 </div>
+<div class="container hide">
+	<div id="map"></div>
+	<div class="top-center">
+		<div class="box">
+			<label>LATITUDE</label>
+			<div id="lat">~</div>
+		</div>
+		<div class="box">
+			<label>SATS</label>
+			<div id="gps_sats">~</div>
+		</div>
+		<div class="box">
+			<label>LONGITUDE</label>
+			<div id="lng">~</div>
+		</div>
+	</div>
 
-<div class="bottom-right">
-	<span class="img-wrapper">
-		<img src="images/compass.png" width="150">
-		<img id="heading" class="img-overlap" src="images/compass_plane.png" width="150">
-	</span>
-	<span class="img-wrapper">
-		<img src="images/attitude-indicator-bg.png" width="150">
-		<img id="attitude-horizont" class="img-overlap" src="images/attitude-horizont.png" width="150">
-		<img id="attitude-plane" class="img-overlap" src="images/horizon_plane.png" width="150">
-	</span>		
+	<div class="top-left">
+		<div class="box">
+			<label>CURRENT</label>
+			<div id="current">~</div>
+		</div>
+		<div class="box">
+			<label>VOLTAGE</label>
+			<div id="voltage">~</div>
+		</div>
+		<div class="box">
+			<label>SPEED</label>
+			<div id="speed">~</div>
+		</div>
+		<div class="box">
+			<label>ALTITUDE</label>
+			<div id="alt">~</div>
+		</div>
+		<div class="box">
+			<label>DISTANCE</label>
+			<div id="distance">~</div>
+		</div>
+	</div>
+
+	<div class="top-right">
+		<div class="box">
+			<label>FLIGHT MODE</label>
+			<div id="stabilization">~</div>
+		</div>
+		<div class="box">
+			<label>ARMED</label>
+			<div id="arm">~</div>
+		</div>
+		<div class="box">
+			<label>FUEL</label>
+			<div id="fuel">~</div>
+		</div>
+		<div class="box">
+			<label>SIGNAL</label>
+			<div id="rssi">~</div>
+		</div>
+		<div class="box">
+			<label>LAST PACKET</label>
+			<div id="lastPacket">~</div>
+		</div>
+	</div>
+
+	<div class="bottom-right">
+		<button id="disconnect">Disconnect</button>
+		<span class="img-wrapper">
+			<img src="images/compass.png" width="150">
+			<img id="heading" class="img-overlap" src="images/compass_plane.png" width="150">
+		</span>
+		<span class="img-wrapper">
+			<img src="images/attitude-indicator-bg.png" width="150">
+			<img id="attitude-horizont" class="img-overlap" src="images/attitude-horizont.png" width="150">
+			<img id="attitude-plane" class="img-overlap" src="images/horizon_plane.png" width="150">
+		</span>		
+	</div>
 </div>
-
 <script>
 	$(document).ready(function() {
 		setInterval(function(){ 
 			$.get("/flight", function(data, status) {
 				var jsonData = JSON.parse(data);
-          		console.log(jsonData);
           		$('#lat').text(jsonData.lat);
           		$('#lng').text(jsonData.lng);
-          		$('#alt').text(jsonData.alt);
+          		$('#alt').text(jsonData.alt+"m");
           		$('#gps_sats').text(jsonData.gps_sats);
-          		$('#distance').text(jsonData.distance);
-          		$('#speed').text(jsonData.speed);
-          		$('#voltage').text(jsonData.voltage);
-          		$('#rssi').text(jsonData.rssi);
-          		$('#current').text(jsonData.current);
+          		$('#distance').text(jsonData.distance+"m");
+          		$('#speed').text(jsonData.speed+"km/h");
+          		$('#voltage').text(jsonData.voltage+"v");
+          		$('#rssi').text(jsonData.rssi+"%");
+          		$('#current').text(jsonData.current+"a");
           		$('#arm').text(jsonData.arm);
           		$('#stabilization').text(jsonData.stabilization);
-          		$('#fuel').text(jsonData.fuel);
+          		$('#fuel').text(jsonData.fuel+"%");
 
           		$("#heading").css({'transform': 'rotate('+jsonData.heading+'deg)'});
           		$("#attitude-horizont").css({top:-jsonData.pitch});
 				$("#attitude-plane").css({'transform': 'rotate('+jsonData.roll+'deg)'});
+				$('#lastPacket').text(jsonData.last_packet + "s");
         	});
-
-        	$.get("/status", function(data, status) {
-        		$('#lastPacket').text(data + "s");
-        	});
-		}, 3000);
+		}, 1000);
 
 		$.get("/ports", function(data, status) {
           var jsonData = JSON.parse(data);
@@ -121,10 +118,18 @@
         		$("#ports").append($("<option />").val(element.path).text(element.path));
     		});
         });
+        $('#disconnect').on('click', function() {
+	        $.get("/disconnect", function(data, status) {
+          		$('.container').addClass('hide');
+        		$('.ports-wrapper').removeClass('hide');	
+        	});
+        	
+	    });
         $('#connect').on('click', function() {
         	var selectedPort = $("#ports option:selected").text();
 	        $.post("/connect/",{port:selectedPort}, function(data, status) {
-          		
+          		$('.container').removeClass('hide');
+        		$('.ports-wrapper').addClass('hide');
         	});
 	    });
 
