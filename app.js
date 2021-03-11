@@ -13,7 +13,7 @@ http.createServer(app).listen(8080);
 
 var lastPacket = new Date();
 var portConnected = "";
-var serialPort;
+var serialPort = null;
 
 app.get('/', function (req, res) {
 	res.sendFile(path.join(__dirname + '/index.html'));  
@@ -33,6 +33,12 @@ app.get('/ports', function (req, res) {
     });
 })
 app.get('/flight', function (req, res) {
+    if (serialPort == null){
+        lastPacket = new Date();
+        res.send(JSON.stringify({}));
+        return;
+    }
+
     const last_packet = parseInt(Math.abs(new Date() - lastPacket) / 1000);
 
     if (last_packet > 25){

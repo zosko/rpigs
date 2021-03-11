@@ -1,14 +1,14 @@
 <html>
 <head>
 	<meta name="viewport" content="width=device-width, initial-scale=1">
-	<script type="text/javascript" src="js/jquery.js"></script>   
+	<script type="text/javascript" src="js/jquery.js"></script>
 	<script src="https://cdnjs.cloudflare.com/ajax/libs/openlayers/2.11/lib/OpenLayers.js"></script> 
 	<title>Ground Station</title>
 </head>
 <body>
 <div class="ports-wrapper">
-	<select id="ports"></select>
-	<button id="connect">Connect</button>
+	<select id="ports"></select><br /><br /><br />
+	<div id="connect"><img src="images/power_on.png" width="80"></div>
 </div>
 <div class="container hide">
 	<div id="map"></div>
@@ -74,7 +74,7 @@
 	</div>
 
 	<div class="bottom-right">
-		<button id="disconnect">Disconnect</button>
+		<span class="img-wrapper" id="disconnect"><img src="images/power_off.png" width="80"></span>
 		<span class="img-wrapper">
 			<img src="images/compass.png" width="150">
 			<img id="heading" class="img-overlap" src="images/compass_plane.png" width="150">
@@ -85,12 +85,19 @@
 			<img id="attitude-plane" class="img-overlap" src="images/horizon_plane.png" width="150">
 		</span>		
 	</div>
+
+	<div class="bottom-left">
+		<div class="box">
+			<label id="follow" class="vertical-center">FREE MAP</label>
+		</div>
+	</div>
 </div>
 <script>
 	$(document).ready(function() {
 		map = new OpenLayers.Map("map", {
             controls: [
-                new OpenLayers.Control.ZoomPanel()
+                new OpenLayers.Control.ZoomPanel(),
+                new OpenLayers.Control.Navigation()
             ]
         });
 
@@ -131,7 +138,10 @@
 				marker = new OpenLayers.Marker(lonLat);
     			markers.addMarker(marker);
     			map.addLayer(markers);
-    			map.setCenter (lonLat, zoom);
+
+    			if ($('#follow').text() === "FREE MAP"){
+					map.setCenter (lonLat, zoom);
+    			}
         	});
 		}, 300);
 
@@ -146,7 +156,9 @@
           		$('.container').addClass('hide');
         		$('.ports-wrapper').removeClass('hide');	
         	});
-        	
+	    });
+	    $('#follow').on('click', function() {
+	        $(this).text($(this).text()==="FOLLOW MAP" ? "FREE MAP" : "FOLLOW MAP");
 	    });
         $('#connect').on('click', function() {
         	var selectedPort = $("#ports option:selected").text();

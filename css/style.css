@@ -50,6 +50,9 @@
   		font-family: Arial;
   		background-color: black;
   	}
+    .vertical-center{
+      line-height: 40px;
+    }
     #map {
       top:0px;
       bottom: 0px;
@@ -67,14 +70,20 @@
       transform: translateY(-50%);
     }
     .olControlZoomPanel .olControlZoomInItemInactive {
-            left: 30px;
+            left: 20px;
             top: 160px;
+            background-size: 50;
+            height: 50px;
+            width: 50px;
        } 
-       .olControlZoomPanel .olControlZoomToMaxExtentItemInactive{
-          left: 30px;
-            top: 180px;
-       }
        .olControlZoomPanel .olControlZoomOutItemInactive {
-          left: 30px;
-            top: 200px;
+          left: 20px;
+            top: 211px;
+            height: 50px;
+            width: 50px;
+            background-size: 50;
+            background-position: 0 50px;
+       }
+       .olControlZoomPanel .olControlZoomToMaxExtentItemInactive{
+        display: none;
        }
