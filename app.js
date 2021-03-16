@@ -274,3 +274,67 @@ function process_incoming_bytes(incomingData){
         }
     }
 }
+
+// func calculateDistance(point1 : CGPoint , point2 : CGPoint) -> Int{
+//         // returns distance in meters between two positions, both specified
+//         // as signed decimal-degrees latitude and longitude. Uses great-circle
+//         // distance computation for hypothetical sphere of radius 6372795 meters.
+//         // Because Earth is no exact sphere, rounding errors may be up to 0.5%.
+//         // Courtesy of Maarten Lamers
+//         var delta = deg2rad(Double(point1.y - point2.y))
+//         let sdlong = sin(delta)
+//         let cdlong = cos(delta)
+//         let lat1 = deg2rad(Double(point1.x))
+//         let lat2 = deg2rad(Double(point2.x))
+//         let slat1 = sin(lat1)
+//         let clat1 = cos(lat1)
+//         let slat2 = sin(lat2)
+//         let clat2 = cos(lat2)
+//         delta = (clat1 * slat2) - (slat1 * clat2 * cdlong)
+//         delta = delta * delta
+//         delta += (clat2 * sdlong) * (clat2 * sdlong)
+//         delta = sqrt(delta)
+//         let denom = (slat1 * slat2) + (clat1 * clat2 * cdlong)
+//         delta = atan2(delta, denom)
+//         return Int(delta * 6372795)
+//     }
+//     func elevationAngle(point1 : CGPoint , point2 : CGPoint, altitude : Int) -> Int {
+//         let distance = calculateDistance(point1: point1, point2: point2)
+//         var at = atan2(CGFloat(altitude), CGFloat(distance));
+//         at = at * 57.2957795 // 1 radian == 57.2957795 angle
+//         return Int(at)
+//     }
+//     func angleBetweenCoordinates(point1 : CGPoint, point2 : CGPoint, fakeNorth : Int = 0) -> Int{
+//         let deltaX = point2.x - point1.x
+//         let deltaY = point2.y - point1.y
+        
+//         let atan = atan2(deltaY, deltaX)
+//         let degree = rad2deg(Double(atan))
+        
+//         var angle = Int((degree < 0) ? (360 + degree) : degree)
+        
+//         if angle >= fakeNorth {
+//             angle = angle - fakeNorth
+//         }
+//         else {
+//             angle = angle + (360 - fakeNorth)
+//         }
+//         return angle
+//     }
+//     func deg2rad(_ number: Double) -> Double {
+//         return number * .pi / 180
+//     }
+//     func rad2deg(_ number: Double) -> Double {
+//         return number * 180 / .pi
+//     }
+//     func panAngle(angle : Int) -> Int{
+//         var panAngle = 0
+        
+//         if angle >= 270 && angle <= 360 {
+//             panAngle = angle - 270
+//         }
+//         if angle >= 0 && angle <= 90 {
+//             panAngle = angle + 90
+//         }
+//         return panAngle
+//     }
