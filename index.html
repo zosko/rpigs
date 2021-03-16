@@ -107,13 +107,14 @@
       	var markers = new OpenLayers.Layer.Markers("Markers");
       	var vectorLayer = new OpenLayers.Layer.Vector("Overlay");
       	var zoom = 16;
-		var marker = null;
+		var planeMarker = null;
+		var homeMarker = null;
 
 		setInterval(function(){ 
 			$.get("/flight", function(data, status) {
 				var jsonData = JSON.parse(data);
-          		$('#lat').text(jsonData.lat);
-          		$('#lng').text(jsonData.lng);
+          		$('#lat').text(jsonData.plane.lat);
+          		$('#lng').text(jsonData.plane.lng);
           		$('#alt').text(jsonData.alt+"m");
           		$('#gps_sats').text(jsonData.gps_sats);
           		$('#distance').text(jsonData.distance+"m");
@@ -130,13 +131,22 @@
 				$("#attitude-plane").css({'transform': 'rotate('+jsonData.roll+'deg)'});
 				$('#lastPacket').text(jsonData.last_packet + "s");
 
-				if (marker != null){
-					markers.removeMarker(marker);
+				if (planeMarker != null){
+					markers.removeMarker(planeMarker);
+				}
+
+				if (homeMarker == null){
+					if (jsonData.home.lng != 0 && jsonData.home.lat != 0){
+						var lonLat = new OpenLayers.LonLat( jsonData.home.lng,jsonData.home.lat).transform(epsg4326, projectTo);
+						homeMarker = new OpenLayers.Marker(lonLat);
+    					markers.addMarker(homeMarker);
+    					map.addLayer(markers);	
+					}
 				}
 				
-				var lonLat = new OpenLayers.LonLat( jsonData.lng,jsonData.lat ).transform(epsg4326, projectTo);
-				marker = new OpenLayers.Marker(lonLat);
-    			markers.addMarker(marker);
+				var lonLat = new OpenLayers.LonLat( jsonData.plane.lng,jsonData.plane.lat ).transform(epsg4326, projectTo);
+				planeMarker = new OpenLayers.Marker(lonLat);
+    			markers.addMarker(planeMarker);
     			map.addLayer(markers);
 
     			if ($('#follow').text() === "FREE MAP"){
@@ -154,7 +164,9 @@
         $('#disconnect').on('click', function() {
 	        $.get("/disconnect", function(data, status) {
           		$('.container').addClass('hide');
-        		$('.ports-wrapper').removeClass('hide');	
+        		$('.ports-wrapper').removeClass('hide');
+        		homeMarker = null;
+        		planeMarker = null;
         	});
 	    });
 	    $('#follow').on('click', function() {
