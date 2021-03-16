@@ -338,3 +338,14 @@ function process_incoming_bytes(incomingData){
 //         }
 //         return panAngle
 //     }
+// let homePos = CGPoint(x: 42.060012121087816, y: 21.385429952247396)
+//         let fakeNorthPos = CGPoint(x: 42.060454231001344, y: 21.384319505905818)
+//         let plane = CGPoint(x: 42.06096402093398, y:  21.383455834576207)
+        
+//         let fakeAngleNorth = angleBetweenCoordinates(point1: homePos, point2: fakeNorthPos)
+//         let angle = angleBetweenCoordinates(point1: homePos, point2: plane, fakeNorth: fakeAngleNorth)
+//         let distance = calculateDistance(point1: homePos, point2: plane)
+//         let elevation = elevationAngle(point1: homePos, point2: plane, altitude: 10)
+//         let servo = panAngle(angle: angle)
+        
+//         print("angle: \(angle)  servo: \(servo) distance: \(distance)m elevation:\(elevation)")
