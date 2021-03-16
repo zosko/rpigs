@@ -15,83 +15,9 @@ var lastPacket = new Date();
 var portConnected = "";
 var serialPort = null;
 
-app.get('/', function (req, res) {
-	res.sendFile(path.join(__dirname + '/index.html'));  
-})
-app.get('/disconnect', function (req, res) {
-    serialPort.close();
-    res.send("");
-})
-app.post('/connect', function (req, res) {
-    portConnected = req.body.port;
-    connect()
-	res.send("");
-})
-app.get('/ports', function (req, res) {
-	SerialPort.list().then(function(ports){
-        res.send(JSON.stringify(ports));
-    });
-})
-app.get('/flight', function (req, res) {
-    if (serialPort == null){
-        lastPacket = new Date();
-        res.send(JSON.stringify({}));
-        return;
-    }
-
-    const last_packet = parseInt(Math.abs(new Date() - lastPacket) / 1000);
-
-    if (last_packet > 25){
-        lastPacket = new Date();
-        reconnect();
-    }
-
-	var flight = {
-		lat:lat,
-		lng:lng,
-		alt:alt,
-		gps_sats:gps_sats,
-		distance:distance,
-		speed:speed,
-		voltage:voltage,
-		rssi:rssi,
-		current:current,
-		heading:heading,
-		arm:getArmed(),
-		stabilization:getStabilization(),
-		fuel:fuel,
-		roll:roll,
-		pitch:pitch,
-        last_packet:last_packet
-	}
-    res.send(JSON.stringify(flight));
-})
-
-function connect(){
-    serialPort = new SerialPort(portConnected, { baudRate: 57600 });
-
-    serialPort.on("open", () => {
-        console.log('SerialPort: ' + portConnected);
-    });
-    serialPort.on('error', function(err) {
-        console.log('Error: ', err.message)
-    });
-    serialPort.on('data', data =>{
-        process_incoming_bytes(data);
-    });
-
-    setTimeout(function() {
-        serialPort.write('AT+PIN000000\r\n');
-    }, 1000);
-    setTimeout(function() {
-        serialPort.write('AT+CONA4C249839091C\r\n');
-    }, 2000);
-}
-function reconnect(){
-    serialPort.close();
-    connect()
-}
-
+//////////////////////////////
+///  SMART PORT VARIABLES  ///
+///------------------------///
 var lat = 0.0
 var lng = 0.0
 var alt = 0
@@ -146,7 +72,153 @@ var newLatitude = false
 var newLongitude = false
 var latitude = 0.0
 var longitude = 0.0
+///------------------------///
+///  SMART PORT VARIABLES  ///
+//////////////////////////////
 
+///////////////////////////
+///  TRACKER VARIABLES  ///
+///--------------------////
+var homeCoordinate = { lat:0, lng:0 }
+var planeCoordinate = { lat:0, lng:0 }
+var fakeNorthCoordinate = { lat:0, lng:0 }
+var homeFix = false
+///--------------------////
+///  TRACKER VARIABLES  ///
+///////////////////////////
+
+//////////////////////
+///    WEB API     ///
+///---------------////
+app.get('/', function (req, res) {
+	res.sendFile(path.join(__dirname + '/index.html'));  
+})
+app.get('/disconnect', function (req, res) {
+    serialPort.close();
+    homeFix = false;
+
+    homeCoordinate.lat = 0
+    homeCoordinate.lng = 0
+
+    planeCoordinate.lat = 0
+    planeCoordinate.lng = 0
+
+    fakeNorthCoordinate.lat = 0
+    fakeNorthCoordinate.lng = 0
+
+    res.send("");
+})
+app.post('/connect', function (req, res) {
+    portConnected = req.body.port;
+    connect()
+	res.send("");
+})
+app.get('/ports', function (req, res) {
+	SerialPort.list().then(function(ports){
+        res.send(JSON.stringify(ports));
+    });
+})
+app.get('/flight', function (req, res) {
+    if (serialPort == null){
+        lastPacket = new Date();
+        res.send(JSON.stringify({}));
+        return;
+    }
+
+    const last_packet = parseInt(Math.abs(new Date() - lastPacket) / 1000);
+
+    if (last_packet > 25){
+        lastPacket = new Date();
+        reconnect();
+    }
+
+    if (gps_sats > 5 && !homeFix){
+        homeFix = true
+        homeCoordinate.lat = lat
+        homeCoordinate.lng = lng
+    }
+
+    planeCoordinate.lat = lat
+    planeCoordinate.lng = lng
+
+	var flight = {
+		plane:planeCoordinate,
+		alt:alt,
+		gps_sats:gps_sats,
+		distance:distance,
+		speed:speed,
+		voltage:voltage,
+		rssi:rssi,
+		current:current,
+		heading:heading,
+		arm:getArmed(),
+		stabilization:getStabilization(),
+		fuel:fuel,
+		roll:roll,
+		pitch:pitch,
+        last_packet:last_packet,
+        home:homeCoordinate
+	}
+    res.send(JSON.stringify(flight));
+})
+app.get('/fake_north', function (req, res) {
+    if (homeFix){
+        fakeNorthCoordinate.lat = lat
+        fakeNorthCoordinate.lng = lng
+        res.send(JSON.stringify("SET"));
+    }
+    else{
+        res.send(JSON.stringify("INVALID"));
+    }
+})
+app.get('/tracker', function (req, res) {
+
+    var fakeAngleNorth = angleBetweenCoordinates(homeCoordinate, fakeNorthCoordinate)
+    var angle = angleBetweenCoordinates(homeCoordinate, planeCoordinate, fakeAngleNorth)
+    var distance = calculateDistance(homeCoordinate, planeCoordinate)
+    var elevation = elevationAngle(homeCoordinate, planeCoordinate, alt)
+    var servo = panAngle(angle)
+        
+    res.send(JSON.stringify("[angle]" + angle +"[servo]" + servo + "[distance]" + distance+"[elevation]"+ elevation));
+})
+///---------------////
+///    WEB API     ///
+//////////////////////
+
+///////////////////////////////
+///  SERIAL PORT FUNCTIONS  ///
+///-------------------------///
+function connect(){
+    serialPort = new SerialPort(portConnected, { baudRate: 57600 });
+
+    serialPort.on("open", () => {
+        console.log('SerialPort: ' + portConnected);
+    });
+    serialPort.on('error', function(err) {
+        console.log('Error: ', err.message)
+    });
+    serialPort.on('data', data =>{
+        process_incoming_bytes(data);
+    });
+
+    setTimeout(function() {
+        serialPort.write('AT+PIN000000\r\n');
+    }, 1000);
+    setTimeout(function() {
+        serialPort.write('AT+CONA4C249839091C\r\n');
+    }, 2000);
+}
+function reconnect(){
+    serialPort.close();
+    connect()
+}
+///-------------------------///
+///  SERIAL PORT FUNCTIONS  ///
+///////////////////////////////
+
+/////////////////////////////
+/// SMART PORT FUNCTIONS  ///
+///-----------------------///
 function getStabilization(){
     var mode = parseInt(flight_mode / 10 % 10);
     if (mode == 2){
@@ -274,78 +346,71 @@ function process_incoming_bytes(incomingData){
         }
     }
 }
+///-----------------------///
+/// SMART PORT FUNCTIONS  ///
+/////////////////////////////
 
-// func calculateDistance(point1 : CGPoint , point2 : CGPoint) -> Int{
-//         // returns distance in meters between two positions, both specified
-//         // as signed decimal-degrees latitude and longitude. Uses great-circle
-//         // distance computation for hypothetical sphere of radius 6372795 meters.
-//         // Because Earth is no exact sphere, rounding errors may be up to 0.5%.
-//         // Courtesy of Maarten Lamers
-//         var delta = deg2rad(Double(point1.y - point2.y))
-//         let sdlong = sin(delta)
-//         let cdlong = cos(delta)
-//         let lat1 = deg2rad(Double(point1.x))
-//         let lat2 = deg2rad(Double(point2.x))
-//         let slat1 = sin(lat1)
-//         let clat1 = cos(lat1)
-//         let slat2 = sin(lat2)
-//         let clat2 = cos(lat2)
-//         delta = (clat1 * slat2) - (slat1 * clat2 * cdlong)
-//         delta = delta * delta
-//         delta += (clat2 * sdlong) * (clat2 * sdlong)
-//         delta = sqrt(delta)
-//         let denom = (slat1 * slat2) + (clat1 * clat2 * cdlong)
-//         delta = atan2(delta, denom)
-//         return Int(delta * 6372795)
-//     }
-//     func elevationAngle(point1 : CGPoint , point2 : CGPoint, altitude : Int) -> Int {
-//         let distance = calculateDistance(point1: point1, point2: point2)
-//         var at = atan2(CGFloat(altitude), CGFloat(distance));
-//         at = at * 57.2957795 // 1 radian == 57.2957795 angle
-//         return Int(at)
-//     }
-//     func angleBetweenCoordinates(point1 : CGPoint, point2 : CGPoint, fakeNorth : Int = 0) -> Int{
-//         let deltaX = point2.x - point1.x
-//         let deltaY = point2.y - point1.y
+////////////////////////////
+///   TRACKER FUNCTIONS  ///
+///----------------------///
+function calculateDistance(point1, point2){
+    var delta = deg2rad(point1.lng - point2.lng)
+    var sdlong = Math.sin(delta)
+    var cdlong = Math.cos(delta)
+    var lat1 = deg2rad(point1.lat)
+    var lat2 = deg2rad(point2.lat)
+    var slat1 = Math.sin(lat1)
+    var clat1 = Math.cos(lat1)
+    var slat2 = Math.sin(lat2)
+    var clat2 = Math.cos(lat2)
+
+    delta = (clat1 * slat2) - (slat1 * clat2 * cdlong)
+    delta = delta * delta
+    delta += (clat2 * sdlong) * (clat2 * sdlong)
+    delta = Math.sqrt(delta)
+
+    var denom = (slat1 * slat2) + (clat1 * clat2 * cdlong)
+    delta = Math.atan2(delta, denom)
+    return delta * 6372795
+}
+function elevationAngle(point1, point2, altitude) {
+    var distance = calculateDistance(point1,point2)
+    var at = Math.atan2(altitude, distance);
+    at = at * 57.2957795 // 1 radian == 57.2957795 angle
+    return at
+}
+function angleBetweenCoordinates(point1, point2, fakeNorth = 0) {
+    var deltaX = point2.lat - point1.lat
+    var deltaY = point2.lng - point1.lng
+    var atan = Math.atan2(deltaY, deltaX)
+    var degree = rad2deg(atan)
+    var angle = (degree < 0) ? (360 + degree) : degree
         
-//         let atan = atan2(deltaY, deltaX)
-//         let degree = rad2deg(Double(atan))
+    if (angle >= fakeNorth) {
+        angle = angle - fakeNorth
+    }
+    else {
+        angle = angle + (360 - fakeNorth)
+    }
+    return angle
+}
+function deg2rad(number) {
+    return number * Math.PI / 180
+}
+function rad2deg(number) {
+    return number * 180 / Math.PI
+}
+function panAngle(angle){
+    var panAngle = 0
         
-//         var angle = Int((degree < 0) ? (360 + degree) : degree)
-        
-//         if angle >= fakeNorth {
-//             angle = angle - fakeNorth
-//         }
-//         else {
-//             angle = angle + (360 - fakeNorth)
-//         }
-//         return angle
-//     }
-//     func deg2rad(_ number: Double) -> Double {
-//         return number * .pi / 180
-//     }
-//     func rad2deg(_ number: Double) -> Double {
-//         return number * 180 / .pi
-//     }
-//     func panAngle(angle : Int) -> Int{
-//         var panAngle = 0
-        
-//         if angle >= 270 && angle <= 360 {
-//             panAngle = angle - 270
-//         }
-//         if angle >= 0 && angle <= 90 {
-//             panAngle = angle + 90
-//         }
-//         return panAngle
-//     }
-// let homePos = CGPoint(x: 42.060012121087816, y: 21.385429952247396)
-//         let fakeNorthPos = CGPoint(x: 42.060454231001344, y: 21.384319505905818)
-//         let plane = CGPoint(x: 42.06096402093398, y:  21.383455834576207)
-        
-//         let fakeAngleNorth = angleBetweenCoordinates(point1: homePos, point2: fakeNorthPos)
-//         let angle = angleBetweenCoordinates(point1: homePos, point2: plane, fakeNorth: fakeAngleNorth)
-//         let distance = calculateDistance(point1: homePos, point2: plane)
-//         let elevation = elevationAngle(point1: homePos, point2: plane, altitude: 10)
-//         let servo = panAngle(angle: angle)
-        
-//         print("angle: \(angle)  servo: \(servo) distance: \(distance)m elevation:\(elevation)")
+    if (angle >= 270 && angle <= 360) {
+        panAngle = angle - 270
+    }
+    if (angle >= 0 && angle <= 90) {
+        panAngle = angle + 90
+    }
+    return panAngle
+}
+///----------------------///
+///   TRACKER FUNCTIONS  ///
+////////////////////////////
