@@ -15,6 +15,11 @@ var lastPacket = new Date();
 var portConnected = "";
 var serialPort = null;
 
+// const Gpio = require('pigpio').Gpio;
+// const panMotor = new Gpio(20, {mode: Gpio.OUTPUT});
+// const tiltMotor = new Gpio(21, {mode: Gpio.OUTPUT});
+
+
 //////////////////////////////
 ///  SMART PORT VARIABLES  ///
 ///------------------------///
@@ -178,7 +183,13 @@ app.get('/tracker', function (req, res) {
     var distance = calculateDistance(homeCoordinate, planeCoordinate)
     var elevation = elevationAngle(homeCoordinate, planeCoordinate, alt)
     var servo = panAngle(angle)
-        
+
+    var panServoPWM = map(servo,0,180,800,2000) // 800 - 2000
+    var tiltServoPWN = map(elevation,0,90,800,2000) // 800 - 2000
+
+    // panMotor.servoWrite(panServoPWM);
+    // tiltMotor.servoWrite(tiltServoPWN);
+    
     res.send(JSON.stringify("[angle]" + angle +"[servo]" + servo + "[distance]" + distance+"[elevation]"+ elevation));
 })
 ///---------------////
@@ -410,6 +421,9 @@ function panAngle(angle){
         panAngle = angle + 90
     }
     return panAngle
+}
+function map(x,  in_min,  in_max,  out_min,  out_max){
+    return (x - in_min) * (out_max - out_min) / (in_max - in_min) + out_min;
 }
 ///----------------------///
 ///   TRACKER FUNCTIONS  ///

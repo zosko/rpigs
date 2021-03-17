@@ -88,6 +88,9 @@
 
 	<div class="bottom-left">
 		<div class="box">
+			<label id="fake_north" class="vertical-center">FAKE NORTH</label>
+		</div>
+		<div class="box">
 			<label id="follow" class="vertical-center">FREE MAP</label>
 		</div>
 	</div>
@@ -152,6 +155,12 @@
     			if ($('#follow').text() === "FREE MAP"){
 					map.setCenter (lonLat, zoom);
     			}
+
+    			if (!$('#fake_north').parent().is(":visible")) {
+    				$.get("/tracker", function(data, status) {
+    					console.log(data);
+		        	});
+    			}
         	});
 		}, 300);
 
@@ -165,12 +174,18 @@
 	        $.get("/disconnect", function(data, status) {
           		$('.container').addClass('hide');
         		$('.ports-wrapper').removeClass('hide');
+        		$('#fake_north').parent().show();
         		homeMarker = null;
         		planeMarker = null;
         	});
 	    });
 	    $('#follow').on('click', function() {
 	        $(this).text($(this).text()==="FOLLOW MAP" ? "FREE MAP" : "FOLLOW MAP");
+	    });
+	    $('#fake_north').on('click', function() {
+	        $.get("/fake_north", function(data, status) {
+          		$('#fake_north').parent().hide();
+        	});
 	    });
         $('#connect').on('click', function() {
         	var selectedPort = $("#ports option:selected").text();
