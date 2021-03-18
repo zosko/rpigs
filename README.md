@@ -7,7 +7,6 @@ Raspberry PI Ground Station for Smart Port, using OFFLINE maps from OSM
 Im using:
 - Raspberry Pi
 - Display 800x480
-- USB to Serial
 - Bluetooth 4.0 (HM-10)
 
 USB to Serial is used for Bluetooth connection
