@@ -1,7 +1,7 @@
-var http = require('http');
-var express = require('express');
+const http = require('http');
+const express = require('express');
 const bodyParser = require("body-parser");
-var path = require("path");
+const path = require("path");
 const SerialPort = require('serialport');
 const app = express();
 
@@ -9,7 +9,9 @@ app.use('/',express.static(path.join(__dirname, './')));
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
 
-http.createServer(app).listen(8080);
+http.createServer(app).listen(8080, function() {
+    console.log('App started: http://localhost:8080');
+});
 
 var lastPacket = new Date();
 var portConnected = "";
@@ -96,7 +98,7 @@ var homeFix = false
 ///    WEB API     ///
 ///---------------////
 app.get('/', function (req, res) {
-	res.sendFile(path.join(__dirname + '/index.html'));  
+    res.sendFile(path.join(__dirname + '/index.html'));
 })
 app.get('/disconnect', function (req, res) {
     serialPort.close();
@@ -170,10 +172,10 @@ app.get('/fake_north', function (req, res) {
     if (homeFix){
         fakeNorthCoordinate.lat = lat
         fakeNorthCoordinate.lng = lng
-        res.send(JSON.stringify("SET"));
+        res.send(JSON.stringify("FAKE NORTH SET"));
     }
     else{
-        res.send(JSON.stringify("INVALID"));
+        res.send(JSON.stringify("FAKE NORTH INVALID"));
     }
 })
 app.get('/tracker', function (req, res) {

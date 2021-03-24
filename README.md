@@ -2,14 +2,12 @@
 ![Screen](screen.png)
 
 # rpigs
-Raspberry PI Ground Station for Smart Port, using OFFLINE maps from OSM
+Raspberry PI Ground Station for Smart Port, using ONLINE/OFFLINE maps from OSM
 
 Im using:
 - Raspberry Pi
 - Display 800x480
 - Bluetooth 4.0 (HM-10)
-
-USB to Serial is used for Bluetooth connection
  
 Bluetooth commands to make connection with FrSky Bluetooth module are: 
 - AT+UUIDFFF0 
