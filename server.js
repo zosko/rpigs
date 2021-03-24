@@ -2,6 +2,7 @@ const http = require('http');
 const express = require('express');
 const bodyParser = require("body-parser");
 const path = require("path");
+const fs = require('fs');
 const SerialPort = require('serialport');
 const app = express();
 
@@ -17,6 +18,9 @@ var lastPacket = new Date();
 var portConnected = "";
 var serialPort = null;
 
+var flightLog = [];
+var flightLogName = Math.floor(Date.now() / 1000);
+var lastFlightLogTimestamp = 0;
 // const Gpio = require('pigpio').Gpio;
 // const panMotor = new Gpio(20, {mode: Gpio.OUTPUT});
 // const tiltMotor = new Gpio(21, {mode: Gpio.OUTPUT});
@@ -118,11 +122,20 @@ app.get('/disconnect', function (req, res) {
 app.post('/connect', function (req, res) {
     portConnected = req.body.port;
     connect()
+
+    flightLog = [];
+    flightLogName = Math.floor(Date.now() / 1000);
+
 	res.send("");
 })
 app.get('/ports', function (req, res) {
 	SerialPort.list().then(function(ports){
         res.send(JSON.stringify(ports));
+    });
+})
+app.get('/history', function (req, res) {
+    fs.readdir("history", (err, files) => {
+        res.send(files);
     });
 })
 app.get('/flight', function (req, res) {
@@ -164,8 +177,12 @@ app.get('/flight', function (req, res) {
 		roll:roll,
 		pitch:pitch,
         last_packet:last_packet,
-        home:homeCoordinate
+        home:homeCoordinate,
+        timestamp:Math.floor(Date.now() / 1000)
 	}
+
+    logData(flight);
+
     res.send(JSON.stringify(flight));
 })
 app.get('/fake_north', function (req, res) {
@@ -429,4 +446,22 @@ function map(x,  in_min,  in_max,  out_min,  out_max){
 }
 ///----------------------///
 ///   TRACKER FUNCTIONS  ///
+////////////////////////////
+
+///----------------------///
+///   COMMON FUNCTIONS   ///
+////////////////////////////
+function logData(flightData){
+    const currentTimestamp = Math.floor(Date.now() / 1000);
+
+    if (currentTimestamp > lastFlightLogTimestamp) {
+        lastFlightLogTimestamp = currentTimestamp + 1;
+        flightLog.push(flightData);
+            fs.appendFile('history/' + flightLogName + ".txt", JSON.stringify(flightLog), function (err) {
+            if (err) throw err;
+        });
+    }
+}
+///----------------------///
+///   COMMON FUNCTIONS   ///
 ////////////////////////////
