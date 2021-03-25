@@ -22,7 +22,6 @@ $(document).ready(function() {
 
 	epsg4326 =  new OpenLayers.Projection("EPSG:4326");
 	projectTo = map.getProjectionObject();
-	var markers = new OpenLayers.Layer.Markers("Markers");
 	var vectorLayer = new OpenLayers.Layer.Vector("Overlay");
 	var zoom = 16;
 	var planeMarker = null;
@@ -49,26 +48,39 @@ $(document).ready(function() {
 			$("#attitude-plane").css({'transform': 'rotate('+jsonData.roll+'deg)'});
 			$('#lastPacket').text(jsonData.last_packet + "s");
 
-			if (planeMarker != null){
-				markers.removeMarker(planeMarker);
+			var planeFollow = new OpenLayers.LonLat(jsonData.plane.lng,jsonData.plane.lat).transform(epsg4326, projectTo);
+			if (planeMarker == null){
+				var stylePlane = {
+					externalGraphic : 'images/plane.png',
+					rotation: 0,
+					pointRadius: 20,
+				};
+
+				var planePosition = new OpenLayers.Geometry.Point(jsonData.plane.lng,jsonData.plane.lat).transform(epsg4326, projectTo);
+				planeMarker = new OpenLayers.Feature.Vector(planePosition,null,stylePlane);
+				vectorLayer.addFeatures(planeMarker);        
+				map.addLayer(vectorLayer);
+			}
+			else{
+				planeMarker.style.rotation = jsonData.heading;
+				planeMarker.move(planeFollow);
 			}
 
-			if (homeMarker == null){
-				if (jsonData.home.lng != 0 && jsonData.home.lat != 0){
-					var lonLat = new OpenLayers.LonLat( jsonData.home.lng,jsonData.home.lat).transform(epsg4326, projectTo);
-					homeMarker = new OpenLayers.Marker(lonLat);
-					markers.addMarker(homeMarker);
-					map.addLayer(markers);  
-				}
-			}
 
-			var lonLat = new OpenLayers.LonLat( jsonData.plane.lng,jsonData.plane.lat ).transform(epsg4326, projectTo);
-			planeMarker = new OpenLayers.Marker(lonLat);
-			markers.addMarker(planeMarker);
-			map.addLayer(markers);
+			if (homeMarker == null && jsonData.gps_sats > 5){
+				var homePosition = new OpenLayers.Geometry.Point(jsonData.home.lng,jsonData.home.lat).transform(epsg4326, projectTo);
+
+				var styleHome = {
+					externalGraphic : 'images/gs.png',
+					pointRadius: 20,
+				};
+				homeMarker = new OpenLayers.Feature.Vector(homePosition,null,styleHome);
+				vectorLayer.addFeatures(homeMarker);        
+				map.addLayer(vectorLayer);
+			}
 
 			if ($('#follow').text() === "FREE MAP"){
-				map.setCenter (lonLat, zoom);
+				map.setCenter(planeFollow, zoom);
 			}
 
 			if (!$('#fake_north').parent().is(":visible") && $("#fake_north").length) {
